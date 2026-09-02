@@ -1,0 +1,15 @@
+# Node
+node_modules/
+.next/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Scraper working data
+cache/
+output/
+
+# Editor/OS
+.DS_Store
