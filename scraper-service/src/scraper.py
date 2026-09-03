@@ -1,19 +1,14 @@
 import os
 import json
 import time
-import requests
 from dataclasses import dataclass
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from datetime import datetime, timezone
 from pydantic import BaseModel, ValidationError
+from .polite_fetch import fetch_and_cache, WRITE
 
-USER_AGENT = "StanleyCrawler"
-READ = "r"
-WRITE = "w"
-MAX_RETRIES = 1
-NO_RETRY_STATUS_CODES = {404, 403}
-
+WRITE_MODE = WRITE
 
 @dataclass
 class ScrapeTargetConfig:
@@ -27,21 +22,21 @@ class ScrapeTargetConfig:
     availability_selector: str
     rating_selector: str
     description_selector: str
-
-
-BOOKS_TO_SCRAPE_CONFIG = ScrapeTargetConfig(
-    start_url="https://books.toscrape.com/catalogue/page-1.html",
-    max_pages=3,
-    book_link_selector="article.product_pod h3 a",
-    next_page_selector="li.next a",
-    product_area_selector="div.product_main",
-    title_selector="h1",
-    price_selector="p.price_color",
-    availability_selector="p.availability",
-    rating_selector="p.star-rating",
-    description_selector="#product_description ~ p",
-)
-
+    
+TARGET_CONFIGS = {
+    "books-to-scrape": ScrapeTargetConfig(
+        start_url="https://books.toscrape.com/catalogue/page-1.html",
+        max_pages=3,
+        book_link_selector="article.product_pod h3 a",
+        next_page_selector="li.next a",
+        product_area_selector="div.product_main",
+        title_selector="h1",
+        price_selector="p.price_color",
+        availability_selector="p.availability",
+        rating_selector="p.star-rating",
+        description_selector="#product_description ~ p",
+    ),
+}
 
 class BookRecord(BaseModel):
     title: str
@@ -53,53 +48,11 @@ class BookRecord(BaseModel):
     description: str | None
     source_page: str
     fetched_at: str
-
-
-def fetch_with_retry(url):
-    attempt = 0
-    while True:
-        try:
-            response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=5)
-        except requests.exceptions.RequestException:
-            if attempt >= MAX_RETRIES:
-                raise
-            attempt += 1
-            time.sleep(1)
-            continue
-
-        if response.status_code == 200:
-            return response
-
-        if response.status_code in NO_RETRY_STATUS_CODES:
-            raise ValueError(f"Non-retryable status {response.status_code} for {url}")
-
-        if attempt >= MAX_RETRIES:
-            raise ValueError(f"Failed after retry, status {response.status_code} for {url}")
-
-        attempt += 1
-        time.sleep(1)
-
-
-def fetch_and_cache(url, cache_path):
-    if os.path.exists(cache_path):
-        print(f"CACHE HIT: {cache_path}")
-        with open(cache_path, READ, encoding="utf-8") as cache_file:
-            return cache_file.read(), False
-
-    print(f"FETCH: {url}")
-    response = fetch_with_retry(url)
-    response.encoding = "utf-8"
-    html = response.text
-    with open(cache_path, WRITE, encoding="utf-8") as cache_file:
-        cache_file.write(html)
-    return html, True
-
-
+    
 def parse_price_gbp(price_text):
     digits_only = price_text.replace("£", "").strip()
     return float(digits_only)
-
-
+  
 def extract_book_record(book_url, source_page, cache_path, config):
     html, was_fetched = fetch_and_cache(book_url, cache_path)
     if was_fetched:
@@ -199,10 +152,10 @@ def run_scrape(config):
                 "reason": str(validation_error),
             })
 
-    with open("output/data.json", WRITE, encoding="utf-8") as books_file:
+    with open("output/data.json", WRITE_MODE, encoding="utf-8") as books_file:
         json.dump(valid_records, books_file, indent=2)
 
-    with open("output/errors.json", WRITE, encoding="utf-8") as errors_file:
+    with open("output/errors.json", WRITE_MODE, encoding="utf-8") as errors_file:
         json.dump(invalid_records, errors_file, indent=2)
 
     run_finished_at = datetime.now(timezone.utc)
@@ -219,7 +172,7 @@ def run_scrape(config):
         "failed_page_details": failed_pages,
     }
 
-    with open("output/run-report.json", WRITE, encoding="utf-8") as report_file:
+    with open("output/run-report.json", WRITE_MODE, encoding="utf-8") as report_file:
         json.dump(run_report, report_file, indent=2)
 
     print(f"valid_records={len(valid_records)}")
@@ -228,4 +181,4 @@ def run_scrape(config):
 
 
 if __name__ == "__main__":
-    run_scrape(BOOKS_TO_SCRAPE_CONFIG)
+    run_scrape(TARGET_CONFIGS["books-to-scrape"])
