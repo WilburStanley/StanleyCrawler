@@ -1,14 +1,17 @@
 import json
 from fastapi import FastAPI
+from pydantic import BaseModel
 from .scraper import run_scrape, TARGET_CONFIGS
+from .auto_scrape import auto_scrape
 
 app = FastAPI()
 
+class AutoScrapeRequest(BaseModel):
+    url: str
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
 
 @app.post("/scrape")
 def scrape():
@@ -28,3 +31,8 @@ def scrape():
         "errors": scrape_errors,
         "run_report": run_report,
     }
+
+@app.post("/auto-scrape")
+def auto_scrape_endpoint(request: AutoScrapeRequest):
+    result = auto_scrape(request.url)
+    return result
