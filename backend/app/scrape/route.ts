@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { scraperServiceUrl, corsHeaders, handleCorsPreflight } from "@/lib/scraper-service";
 
 const bookRecordSchema = z.object({
   title: z.string(),
@@ -35,7 +36,7 @@ const scrapeResponseSchema = z.object({
   run_report: runReportSchema,
 });
 
-const scraperServiceUrl = process.env.SCRAPER_SERVICE_URL ?? "http://localhost:8000";
+export const OPTIONS = handleCorsPreflight;
 
 export const POST = async () => {
   const scraperResponse = await fetch(`${scraperServiceUrl}/scrape`, {
@@ -45,7 +46,7 @@ export const POST = async () => {
   if (!scraperResponse.ok) {
     return NextResponse.json(
       { message: "The scraper service failed to complete the scrape." },
-      { status: 502 },
+      { status: 502, headers: corsHeaders },
     );
   }
 
@@ -55,9 +56,9 @@ export const POST = async () => {
   if (!parsedScrapeResult.success) {
     return NextResponse.json(
       { message: "The scraper service returned data that failed validation." },
-      { status: 502 },
+      { status: 502, headers: corsHeaders },
     );
   }
 
-  return NextResponse.json(parsedScrapeResult.data);
+  return NextResponse.json(parsedScrapeResult.data, { headers: corsHeaders });
 };
