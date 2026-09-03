@@ -10,6 +10,7 @@ type ScrapeResult = {
     valid_records: number;
     invalid_records: number;
     failed_pages: number;
+    cache_hits: number;
   };
 };
 
@@ -74,11 +75,15 @@ const DemoPage = () => {
               <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
                 {scrapeResult.run_report.failed_pages} failed
               </span>
+              <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
+                {scrapeResult.run_report.cache_hits} cached
+              </span>
             </div>
 
             <JsonViewer data={scrapeResult.data} downloadFilename="data.json" />
           </div>
         )}
+
       </div>
     </main>
   );

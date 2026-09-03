@@ -24,6 +24,7 @@ const runReportSchema = z.object({
   duration_seconds: z.number(),
   catalogue_pages_fetched: z.number(),
   detail_pages_attempted: z.number(),
+  cache_hits: z.number(),
   valid_records: z.number(),
   invalid_records: z.number(),
   failed_pages: z.number(),
