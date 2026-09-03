@@ -1,14 +1,28 @@
 import os
+import json
 import time
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from datetime import datetime, timezone
+from pydantic import BaseModel, ValidationError
 
 USER_AGENT = "StanleyCrawler"
 READ = "r"
 WRITE = "w"
 MAX_CATALOGUE_PAGES = 3
+
+
+class BookRecord(BaseModel):
+    title: str
+    product_url: str
+    price_text: str
+    price_gbp: float
+    availability_text: str
+    rating_text: str
+    description: str | None
+    source_page: str
+    fetched_at: str
 
 
 def fetch_and_cache(url, cache_path):
@@ -19,10 +33,15 @@ def fetch_and_cache(url, cache_path):
 
     print(f"FETCH: {url}")
     response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=5)
+    response.encoding = "utf-8"
     html = response.text
     with open(cache_path, WRITE, encoding="utf-8") as cache_file:
         cache_file.write(html)
     return html, True
+
+def parse_price_gbp(price_text):
+    digits_only = price_text.replace("£", "").strip()
+    return float(digits_only)
 
 
 def extract_book_record(book_url, source_page, cache_path):
@@ -51,6 +70,7 @@ def extract_book_record(book_url, source_page, cache_path):
         "title": title,
         "product_url": book_url,
         "price_text": price_text,
+        "price_gbp": parse_price_gbp(price_text),
         "availability_text": availability_text,
         "rating_text": rating_text,
         "description": description,
@@ -89,12 +109,28 @@ while current_url is not None and catalogue_pages_visited < MAX_CATALOGUE_PAGES:
 
 unique_book_urls = list(set(discovered_book_urls))
 
-book_records = []
+valid_records = []
+invalid_records = []
+
 for index, book_url in enumerate(unique_book_urls):
     detail_cache_path = f"cache/book-{index}.html"
     source_page = book_source_pages[book_url]
-    record = extract_book_record(book_url, source_page, detail_cache_path)
-    book_records.append(record)
+    raw_record = extract_book_record(book_url, source_page, detail_cache_path)
 
-print(book_records[0])
-print(f"detail_pages={len(book_records)}")
+    try:
+        validated_record = BookRecord(**raw_record)
+        valid_records.append(validated_record.model_dump())
+    except ValidationError as validation_error:
+        invalid_records.append({
+            "record": raw_record,
+            "reason": str(validation_error),
+        })
+
+with open("output/books.json", WRITE, encoding="utf-8") as books_file:
+    json.dump(valid_records, books_file, indent=2)
+
+with open("output/errors.json", WRITE, encoding="utf-8") as errors_file:
+    json.dump(invalid_records, errors_file, indent=2)
+
+print(f"valid_records={len(valid_records)}")
+print(f"invalid_records={len(invalid_records)}")
