@@ -64,19 +64,16 @@ const DemoPage = () => {
 
         {scrapeResult && (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3 text-sm">
-              <div className="border border-border rounded-sm p-3">
-                <p className="text-muted">Valid records</p>
-                <p className="text-lg font-mono">{scrapeResult.run_report.valid_records}</p>
-              </div>
-              <div className="border border-border rounded-sm p-3">
-                <p className="text-muted">Invalid records</p>
-                <p className="text-lg font-mono">{scrapeResult.run_report.invalid_records}</p>
-              </div>
-              <div className="border border-border rounded-sm p-3">
-                <p className="text-muted">Failed pages</p>
-                <p className="text-lg font-mono">{scrapeResult.run_report.failed_pages}</p>
-              </div>
+            <div className="flex flex-wrap gap-2 text-xs font-mono">
+              <span className="bg-surface text-text px-2.5 py-1 rounded-full">
+                {scrapeResult.run_report.valid_records} valid
+              </span>
+              <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
+                {scrapeResult.run_report.invalid_records} invalid
+              </span>
+              <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
+                {scrapeResult.run_report.failed_pages} failed
+              </span>
             </div>
 
             <JsonViewer data={scrapeResult.data} downloadFilename="data.json" />

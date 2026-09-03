@@ -78,11 +78,11 @@ const AutoScrapePage = () => {
 
         {result && (
           <div className="space-y-4">
-            <div className="flex gap-3 text-sm font-mono">
-              <span className="border border-border rounded-sm px-3 py-1.5 text-text">
+            <div className="flex gap-2 text-xs font-mono">
+              <span className="bg-surface text-text px-2.5 py-1 rounded-full">
                 {result.content_type}
               </span>
-              <span className="border border-border rounded-sm px-3 py-1.5 text-muted">
+              <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
                 via {result.extraction_method}
               </span>
             </div>
