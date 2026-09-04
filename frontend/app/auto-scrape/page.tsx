@@ -5,10 +5,14 @@ import JsonViewer from "@/components/JsonViewer";
 
 type AutoScrapeResult = {
   source_url: string;
-  content_type: string;
-  extraction_method: string;
   fetched_at: string;
-  data: Record<string, unknown>;
+  fields: Record<string, unknown>;
+  field_sources: Record<string, string>;
+  raw: {
+    json_ld: Record<string, unknown> | null;
+    open_graph: Record<string, unknown> | null;
+    readability: Record<string, unknown> | null;
+  };
 };
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3000";
@@ -78,16 +82,15 @@ const AutoScrapePage = () => {
 
         {result && (
           <div className="space-y-4">
-            <div className="flex gap-2 text-xs font-mono">
-              <span className="bg-surface text-text px-2.5 py-1 rounded-full">
-                {result.content_type}
-              </span>
-              <span className="bg-surface text-muted px-2.5 py-1 rounded-full">
-                via {result.extraction_method}
-              </span>
+            <div className="flex flex-wrap gap-2 text-xs font-mono">
+              {Object.entries(result.field_sources).map(([fieldName, source]) => (
+                <span key={fieldName} className="bg-surface text-muted px-2.5 py-1 rounded-full">
+                  {fieldName} <span className="text-text">· {source}</span>
+                </span>
+              ))}
             </div>
 
-            <JsonViewer data={result} downloadFilename="data.json" />
+            <JsonViewer data={result.fields} downloadFilename="data.json" />
           </div>
         )}
       </div>

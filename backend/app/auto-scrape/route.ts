@@ -8,10 +8,14 @@ const autoScrapeRequestSchema = z.object({
 
 const autoScrapeResponseSchema = z.object({
   source_url: z.string(),
-  content_type: z.string(),
-  extraction_method: z.string(),
   fetched_at: z.string(),
-  data: z.record(z.string(), z.any()),
+  fields: z.record(z.string(), z.any()),
+  field_sources: z.record(z.string(), z.string()),
+  raw: z.object({
+    json_ld: z.record(z.string(), z.any()).nullable(),
+    open_graph: z.record(z.string(), z.any()).nullable(),
+    readability: z.record(z.string(), z.any()).nullable(),
+  }),
 });
 
 export const OPTIONS = handleCorsPreflight;
