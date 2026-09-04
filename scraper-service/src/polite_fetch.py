@@ -10,10 +10,8 @@ MAX_RETRIES = 3
 BASE_BACKOFF_SECONDS = 1
 NO_RETRY_STATUS_CODES = {404, 403}
 
-
 def log_attempt(url, status, attempt):
     print(f"structured_log url={url} status={status} attempt={attempt}")
-
 
 def calculate_backoff_seconds(attempt, retry_after_header):
     if retry_after_header is not None:
@@ -25,7 +23,6 @@ def calculate_backoff_seconds(attempt, retry_after_header):
     exponential_wait = BASE_BACKOFF_SECONDS * (2 ** attempt)
     jitter = random.uniform(0, 1)
     return exponential_wait + jitter
-
 
 def fetch_with_retry(url):
     attempt = 0
@@ -45,10 +42,8 @@ def fetch_with_retry(url):
 
         if response.status_code == 200:
             return response
-
         if response.status_code in NO_RETRY_STATUS_CODES:
             raise ValueError(f"Non-retryable status {response.status_code} for {url}")
-
         if attempt >= MAX_RETRIES:
             raise ValueError(f"Failed after {MAX_RETRIES} retries, status {response.status_code} for {url}")
 
@@ -56,7 +51,6 @@ def fetch_with_retry(url):
         wait_seconds = calculate_backoff_seconds(attempt, retry_after_header)
         time.sleep(wait_seconds)
         attempt += 1
-
 
 def fetch_and_cache(url, cache_path):
     if os.path.exists(cache_path):

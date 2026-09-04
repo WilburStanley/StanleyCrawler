@@ -22,9 +22,7 @@ def extract_all_images(parsed_page, base_url):
         absolute_url = urljoin(base_url, src)
         if absolute_url not in image_urls:
             image_urls.append(absolute_url)
-
     return image_urls
-
 
 def extract_downloadable_files(parsed_page, base_url):
     link_tags = parsed_page.find_all("a", href=True)
@@ -34,30 +32,23 @@ def extract_downloadable_files(parsed_page, base_url):
     for tag in link_tags:
         href = tag["href"]
         lowercase_href = href.lower()
-
         matching_extension = None
         for extension in DOWNLOADABLE_FILE_EXTENSIONS:
             if lowercase_href.endswith(extension):
                 matching_extension = extension
                 break
-
         if matching_extension is None:
             continue
-
         absolute_url = urljoin(base_url, href)
         if absolute_url in seen_urls:
             continue
-
         seen_urls.add(absolute_url)
         found_files.append({"url": absolute_url, "type": matching_extension.lstrip(".")})
-
     return found_files
-
 
 def build_cache_path(url):
     url_hash = hashlib.md5(url.encode("utf-8")).hexdigest()
     return f"cache/auto-{url_hash}.html"
-
 
 def extract_json_ld(parsed_page):
     script_tags = parsed_page.find_all("script", type="application/ld+json")
@@ -72,9 +63,7 @@ def extract_json_ld(parsed_page):
         for candidate in candidates:
             if isinstance(candidate, dict) and "@type" in candidate:
                 return candidate
-
     return None
-
 
 def extract_open_graph(parsed_page):
     def is_relevant_property(value):
@@ -90,9 +79,7 @@ def extract_open_graph(parsed_page):
         if not property_name or not content_value:
             continue
         open_graph_data[property_name] = content_value
-
     return open_graph_data if open_graph_data else None
-
 
 def extract_readability_fallback(html):
     extracted_text = trafilatura.extract(html)
@@ -118,14 +105,12 @@ def extract_readability_fallback(html):
         "main_text": extracted_text,
     }
 
-
 def flatten_json_ld_value(value):
     if isinstance(value, dict):
         return value.get("name") or value.get("url") or json.dumps(value)
     if isinstance(value, list):
         return [flatten_json_ld_value(item) for item in value]
     return value
-
 
 def normalize_json_ld(json_ld_data):
     if json_ld_data is None:
@@ -135,31 +120,24 @@ def normalize_json_ld(json_ld_data):
     for key, value in json_ld_data.items():
         if key in ("@context",):
             continue
-
         clean_key = key.lstrip("@")
         if clean_key == "type":
             clean_key = "content_type"
         if clean_key == "name" or clean_key == "headline":
             clean_key = "title"
-
         normalized[clean_key] = flatten_json_ld_value(value)
-
     return normalized
-
 
 def normalize_open_graph(open_graph_data):
     if open_graph_data is None:
         return {}
-
     normalized = {}
     for key, value in open_graph_data.items():
         clean_key = key.replace("og:", "").replace("article:", "").replace("twitter:", "twitter_")
         if clean_key == "type":
             clean_key = "content_type"
         normalized.setdefault(clean_key, value)
-
     return normalized
-
 
 def normalize_readability(readability_data):
     normalized = dict(readability_data)
@@ -168,7 +146,6 @@ def normalize_readability(readability_data):
     if "sitename" in normalized:
         normalized["site_name"] = normalized.pop("sitename")
     return normalized
-
 
 def is_meaningful_value(value):
     if value is None or value == "":
@@ -187,9 +164,7 @@ def merge_fields(tier_results):
             if is_meaningful_value(value) and not already_filled:
                 merged_fields[field_name] = value
                 field_sources[field_name] = tier_name
-
     return merged_fields, field_sources
-
 
 def auto_scrape(url):
     cache_path = build_cache_path(url)
@@ -205,16 +180,13 @@ def auto_scrape(url):
         "images": extract_all_images(parsed_page, url),
         "files": extract_downloadable_files(parsed_page, url),
     }
-
     tier_results = [
         ("json-ld", normalize_json_ld(json_ld_raw)),
         ("open-graph", normalize_open_graph(open_graph_raw)),
         ("readability-fallback", normalize_readability(readability_raw)),
         ("page-scan", page_scan_fields),
     ]
-
     merged_fields, field_sources = merge_fields(tier_results)
-
     return {
         "source_url": url,
         "fetched_at": fetched_at,

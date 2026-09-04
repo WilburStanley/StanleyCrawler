@@ -9,7 +9,6 @@ from .polite_fetch import fetch_and_cache
 
 WRITE_MODE = "w"
 
-
 @dataclass
 class ScrapeTargetConfig:
     start_url: str
@@ -22,7 +21,6 @@ class ScrapeTargetConfig:
     availability_selector: str
     rating_selector: str
     description_selector: str
-
 
 TARGET_CONFIGS = {
     "books-to-scrape": ScrapeTargetConfig(
@@ -39,7 +37,6 @@ TARGET_CONFIGS = {
     ),
 }
 
-
 class BookRecord(BaseModel):
     title: str
     product_url: str
@@ -51,11 +48,9 @@ class BookRecord(BaseModel):
     source_page: str
     fetched_at: str
 
-
 def parse_price_gbp(price_text):
     digits_only = price_text.replace("£", "").strip()
     return float(digits_only)
-
 
 def extract_book_record(book_url, source_page, cache_path, config):
     html, was_fetched = fetch_and_cache(book_url, cache_path)
@@ -90,9 +85,7 @@ def extract_book_record(book_url, source_page, cache_path, config):
         "source_page": source_page,
         "fetched_at": fetched_at,
     }
-
     return record, was_fetched
-
 
 def discover_book_urls(config):
     catalogue_pages_visited = 0
@@ -128,7 +121,6 @@ def discover_book_urls(config):
 
     unique_book_urls = list(set(discovered_book_urls))
     return unique_book_urls, book_source_pages, catalogue_pages_visited, catalogue_cache_hits
-
 
 def run_scrape(config):
     run_started_at = datetime.now(timezone.utc)
@@ -192,7 +184,6 @@ def run_scrape(config):
     print(f"invalid_records={len(invalid_records)}")
     print(f"failed_pages={len(failed_pages)}")
     print(f"cache_hits={catalogue_cache_hits + detail_cache_hits}")
-
 
 if __name__ == "__main__":
     run_scrape(TARGET_CONFIGS["books-to-scrape"])
