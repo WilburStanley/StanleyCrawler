@@ -24,6 +24,19 @@ const navLinks = [
   },
 ];
 
+const usageNotes = [
+  "Works best on server rendered pages, where the content is already present in the page's HTML.",
+  "Tries structured data first (JSON LD, Open Graph, Twitter Card tags), then falls back to a readability style extraction of the main text.",
+  "Also scans the raw HTML directly for images and linked downloadable files.",
+  "Every field in the result is tagged with exactly which method found it.",
+];
+
+const limitationNotes = [
+  "Cannot see content that a page renders client side, after JavaScript runs. Plain client rendered single page apps (for example, a Create React App style site with no server rendering) will return little to no data.",
+  "Framework based sites that render on the server, such as Next.js by default, are not affected by this limitation.",
+  "Result quality depends entirely on what the source page actually publishes. A page with no structured data and little readable text will return a thin result, not an error.",
+];
+
 const StatusDot = ({ isHealthy }: { isHealthy: boolean }) => (
   <span
     className={`inline-block w-2 h-2 rounded-full ${isHealthy ? "bg-success" : "bg-danger"}`}
@@ -48,7 +61,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-bg text-text p-8">
+    <main className="p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div>
           <h1 className="text-xl font-medium">StanleyCrawler</h1>
@@ -90,6 +103,26 @@ const HomePage = () => {
               <ChevronRight size={16} className="text-muted" />
             </Link>
           ))}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-sm font-medium">Usage</h2>
+            <ul className="mt-2 space-y-1.5 text-xs text-muted list-disc pl-4">
+              {usageNotes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="text-sm font-medium">Limitations</h2>
+            <ul className="mt-2 space-y-1.5 text-xs text-muted list-disc pl-4">
+              {limitationNotes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border mt-12">
+    <footer className="border-t border-border mt-12 px-8">
       <div className="max-w-4xl mx-auto space-y-6 py-4 flex gap-4 text-xs text-muted">
         <Link href="/privacy" className="hover:text-text">
           Privacy

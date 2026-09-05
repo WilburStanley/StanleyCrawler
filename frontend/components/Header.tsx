@@ -9,7 +9,7 @@ const Header = () => {
   const isRootPage = pathname === "/";
 
   return (
-    <header className="border-b border-border">
+    <header className="border-b border-border px-8">
       <div className="max-w-4xl mx-auto space-y-6 py-4 flex items-center justify-between">
         {isRootPage ? (
           <span className="text-sm font-medium">StanleyCrawler <span className="text-sm text-muted font-medium">- Built by Wilbur Stanley</span></span>
