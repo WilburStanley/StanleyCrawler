@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { scraperServiceUrl, corsHeaders, handleCorsPreflight } from "@/lib/scraper-service";
+import {
+  scraperServiceUrl,
+  internalApiKey,
+  corsHeaders,
+  handleCorsPreflight,
+  isRateLimited,
+  getClientIp,
+} from "@/lib/scraper-service";
 
 const bookRecordSchema = z.object({
   title: z.string(),
@@ -39,9 +46,18 @@ const scrapeResponseSchema = z.object({
 
 export const OPTIONS = handleCorsPreflight;
 
-export const POST = async () => {
+export const POST = async (request: Request) => {
+  const clientIp = getClientIp(request);
+  if (isRateLimited(clientIp, 5, 60_000)) {
+    return NextResponse.json(
+      { message: "Too many requests. Please wait a moment and try again." },
+      { status: 429, headers: corsHeaders },
+    );
+  }
+
   const scraperResponse = await fetch(`${scraperServiceUrl}/scrape`, {
     method: "POST",
+    headers: { "X-Internal-Key": internalApiKey },
   });
 
   if (!scraperResponse.ok) {

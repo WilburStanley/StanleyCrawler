@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { scraperServiceUrl, corsHeaders, handleCorsPreflight } from "@/lib/scraper-service";
+import {
+  scraperServiceUrl,
+  internalApiKey,
+  corsHeaders,
+  handleCorsPreflight,
+  isRateLimited,
+  getClientIp,
+} from "@/lib/scraper-service";
 
 const autoScrapeRequestSchema = z.object({
   url: z.url(),
@@ -21,6 +28,14 @@ const autoScrapeResponseSchema = z.object({
 export const OPTIONS = handleCorsPreflight;
 
 export const POST = async (request: Request) => {
+  const clientIp = getClientIp(request);
+  if (isRateLimited(clientIp, 10, 60_000)) {
+    return NextResponse.json(
+      { message: "Too many requests. Please wait a moment and try again." },
+      { status: 429, headers: corsHeaders },
+    );
+  }
+
   const rawRequestBody = await request.json();
   const parsedRequestBody = autoScrapeRequestSchema.safeParse(rawRequestBody);
 
@@ -33,7 +48,10 @@ export const POST = async (request: Request) => {
 
   const scraperResponse = await fetch(`${scraperServiceUrl}/auto-scrape`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Key": internalApiKey,
+    },
     body: JSON.stringify({ url: parsedRequestBody.data.url }),
   });
 
