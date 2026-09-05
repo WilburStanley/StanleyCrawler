@@ -7,6 +7,7 @@
   --color-text: #ecedef;
   --color-muted: #8b909a;
   --color-accent: #e8a33d;
+  --color-highlight: #4caf7d;
   --color-danger: #e2574c;
   --color-success: #4caf7d;
 
@@ -18,4 +19,18 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-highlight);
+  color: black;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }

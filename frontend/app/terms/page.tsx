@@ -1,7 +1,7 @@
 const TermsPage = () => {
   return (
     <main className="p-8">
-      <div className="max-w-2xl mx-auto space-y-4 text-sm text-muted">
+      <div className="max-w-4xl mx-auto space-y-4 text-sm text-muted">
         <h1 className="text-xl font-medium text-text">Terms</h1>
 
         <p>

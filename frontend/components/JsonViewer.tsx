@@ -3,11 +3,25 @@
 type JsonViewerProps = {
   data: unknown;
   downloadFilename: string;
+  onCopy?: () => void;
+  onDownload?: () => void;
+  onCopyError?: () => void;
 };
 
-const JsonViewer = ({ data, downloadFilename }: JsonViewerProps) => {
+const JsonViewer = ({
+  data,
+  downloadFilename,
+  onCopy,
+  onDownload,
+  onCopyError,
+}: JsonViewerProps) => {
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      onCopy?.();
+    } catch {
+      onCopyError?.();
+    }
   };
 
   const downloadJson = () => {
@@ -20,6 +34,7 @@ const JsonViewer = ({ data, downloadFilename }: JsonViewerProps) => {
     downloadLink.download = downloadFilename;
     downloadLink.click();
     URL.revokeObjectURL(downloadUrl);
+    onDownload?.();
   };
 
   return (
@@ -39,7 +54,7 @@ const JsonViewer = ({ data, downloadFilename }: JsonViewerProps) => {
         </button>
       </div>
 
-      <pre className="border border-border rounded-sm p-4 text-xs font-mono overflow-auto max-h-[500px] bg-surface text-text select-text">
+      <pre className="border border-border rounded-sm p-4 text-xs font-mono overflow-auto max-h-125 bg-surface text-text select-text">
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>
