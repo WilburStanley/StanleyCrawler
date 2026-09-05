@@ -59,7 +59,7 @@ const DemoPage = () => {
     : [];
 
   return (
-    <main className="min-h-screen bg-bg text-text p-4 sm:p-8">
+    <main className="min-h-screen bg-bg text-text p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-medium">Assignment demo</h1>
