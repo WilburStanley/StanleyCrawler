@@ -4,7 +4,7 @@
 
 Built as part of the FlyRank AI Backend AI Engineering Internship, Assignment A9, "The polite scraper." Started as a graded assignment, extended into a personal portfolio project with a general purpose scraping engine.
 
-## What this is
+## Context
 
 StanleyCrawler is split into three independent services:
 
@@ -16,19 +16,16 @@ StanleyCrawler is split into three independent services:
 
 Site: https://books.toscrape.com
 
-Why: it explicitly states it is a sandbox built for scraping practice, not a live commercial site.
-
-Scope: only the first 3 catalogue pages, and the 60 book detail pages linked from them.
-
-robots.txt: returned a 404. No robots file exists. A missing file is not permission on its own, the justification comes from the site's own stated purpose above.
+- Why: it explicitly states it is a sandbox built for scraping practice, not a live commercial site.
+- Scope: only the first 3 catalogue pages, and the 60 book detail pages linked from them.
+- robots.txt: returned a 404. No robots file exists. A missing file is not permission on its own, the justification comes from the site's own stated purpose above.
 
 I will not reuse this code on another site without checking its rules and terms first.
 
 ## Setup
 
-Each service needs its own .env file, copied from that folder's .env.example.
-
-backend and scraper-service must share the exact same INTERNAL_API_KEY value. Generate one with:
+- Each service needs its own .env file, copied from that folder's .env.example.
+- backend and scraper-service must share the exact same INTERNAL_API_KEY value. Generate one with:
 
 ```
 python -c "import secrets; print(secrets.token_hex(32))"
@@ -80,21 +77,21 @@ Given any URL, tries JSON LD first, then Open Graph and Twitter Card meta tags, 
 
 The auto scrape feature accepts an arbitrary URL from any caller, so the following protections apply.
 
-**Server side request forgery protection, CWE 918.** The requested hostname is resolved to its real IP, every resolved address is checked against private, loopback, link local, reserved, and multicast ranges, and the actual connection is pinned to that exact validated address rather than resolving the hostname again. This closes both simple SSRF and DNS rebinding.
+**`Server side request forgery protection, CWE 918.`** The requested hostname is resolved to its real IP, every resolved address is checked against private, loopback, link local, reserved, and multicast ranges, and the actual connection is pinned to that exact validated address rather than resolving the hostname again. This closes both simple SSRF and DNS rebinding.
 
-**Internal service authentication, CWE 306 and CWE 208.** scraper-service only accepts scrape and auto scrape requests carrying a shared secret header matching its own key, compared using a constant time function to avoid timing leaks.
+**`Internal service authentication, CWE 306 and CWE 208.`** scraper-service only accepts scrape and auto scrape requests carrying a shared secret header matching its own key, compared using a constant time function to avoid timing leaks.
 
-**Rate limiting, CWE 770.** Both backend and scraper-service track request counts per visitor and reject excess requests.
+**`Rate limiting, CWE 770.`** Both backend and scraper-service track request counts per visitor and reject excess requests.
 
-**Input validation, CWE 20.** Submitted URLs are checked for a valid format and allowed scheme before any request is attempted.
+**`Input validation, CWE 20.`** Submitted URLs are checked for a valid format and allowed scheme before any request is attempted.
 
-**No internal error leakage, CWE 209.** Failures return a short, generic message, never a stack trace or file path.
+**`No internal error leakage, CWE 209.`** Failures return a short, generic message, never a stack trace or file path.
 
-**Cross origin restrictions.** backend only accepts browser requests from its own configured frontend origin.
+**`Cross origin restrictions.`** backend only accepts browser requests from its own configured frontend origin.
 
-**Response size limits, CWE 770.** A very large or misbehaving response is capped during download.
+**`Response size limits, CWE 770.`** A very large or misbehaving response is capped during download.
 
-**Known limitation.** The rate limiter on both services is kept in memory, resets on restart, and would not be shared correctly across multiple parallel instances. A production hardened version would back this with a shared store such as Redis. This is a deliberate, documented tradeoff for a project at this scale.
+**`Known limitation.`** The rate limiter on both services is kept in memory, resets on restart, and would not be shared correctly across multiple parallel instances. A production hardened version would back this with a shared store such as Redis. This is a deliberate, documented tradeoff for a project at this scale.
 
 ## Why no browser was needed for the assignment pipeline
 
