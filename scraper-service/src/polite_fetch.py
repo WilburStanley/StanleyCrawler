@@ -13,7 +13,7 @@ WRITE = "w"
 MAX_RETRIES = 3
 BASE_BACKOFF_SECONDS = 1
 NO_RETRY_STATUS_CODES = {404, 403}
-
+MAX_RESPONSE_BYTES = 20 * 1024 * 1024  # 20 MB
 
 def is_ip_unsafe(ip_address):
     return (
@@ -24,7 +24,6 @@ def is_ip_unsafe(ip_address):
         or ip_address.is_multicast
         or ip_address.is_unspecified
     )
-
 
 def resolve_safe_ip(hostname):
     try:
@@ -43,41 +42,52 @@ def resolve_safe_ip(hostname):
     for ip_address in resolved_ips:
         if is_ip_unsafe(ip_address):
             raise ValueError("Requests to private or internal addresses are not allowed")
-
     for ip_address in resolved_ips:
         if ip_address.version == 4:
             return str(ip_address)
-
     return str(resolved_ips[0])
 
+def read_response_with_size_limit(response):
+    content_length = response.headers.get("Content-Length")
+    if content_length is not None and int(content_length) > MAX_RESPONSE_BYTES:
+        raise ValueError(f"Response too large ({content_length} bytes)")
+
+    downloaded_bytes = 0
+    chunks = []
+    for chunk in response.iter_content(chunk_size=8192):
+        downloaded_bytes += len(chunk)
+        if downloaded_bytes > MAX_RESPONSE_BYTES:
+            raise ValueError(f"Response exceeded {MAX_RESPONSE_BYTES} bytes")
+        chunks.append(chunk)
+
+    response._content = b"".join(chunks)
+    return response
 
 def make_pinned_request(url, timeout):
     parsed_url = urlparse(url)
 
     if parsed_url.scheme not in ("http", "https"):
         raise ValueError("Only http and https URLs are allowed")
-
     hostname = parsed_url.hostname
     if not hostname:
         raise ValueError("URL must include a hostname")
-
     pinned_ip = resolve_safe_ip(hostname)
     headers = {"User-Agent": USER_AGENT}
 
     if parsed_url.scheme == "https":
         session = requests.Session()
         session.mount("https://", ForcedIPHTTPSAdapter(dest_ip=pinned_ip))
-        return session.get(url, headers=headers, timeout=timeout)
+        response = session.get(url, headers=headers, timeout=timeout, stream=True)
+    else:
+        netloc = pinned_ip if not parsed_url.port else f"{pinned_ip}:{parsed_url.port}"
+        pinned_url = urlunparse(parsed_url._replace(netloc=netloc))
+        headers["Host"] = hostname
+        response = requests.get(pinned_url, headers=headers, timeout=timeout, stream=True)
 
-    netloc = pinned_ip if not parsed_url.port else f"{pinned_ip}:{parsed_url.port}"
-    pinned_url = urlunparse(parsed_url._replace(netloc=netloc))
-    headers["Host"] = hostname
-    return requests.get(pinned_url, headers=headers, timeout=timeout)
-
+    return read_response_with_size_limit(response)
 
 def log_attempt(url, status, attempt):
     print(f"structured_log url={url} status={status} attempt={attempt}")
-
 
 def calculate_backoff_seconds(attempt, retry_after_header):
     if retry_after_header is not None:
@@ -89,7 +99,6 @@ def calculate_backoff_seconds(attempt, retry_after_header):
     exponential_wait = BASE_BACKOFF_SECONDS * (2 ** attempt)
     jitter = random.uniform(0, 1)
     return exponential_wait + jitter
-
 
 def fetch_with_retry(url):
     attempt = 0
@@ -111,10 +120,8 @@ def fetch_with_retry(url):
 
         if response.status_code == 200:
             return response
-
         if response.status_code in NO_RETRY_STATUS_CODES:
             raise ValueError(f"Non-retryable status {response.status_code} for {url}")
-
         if attempt >= MAX_RETRIES:
             raise ValueError(f"Failed after {MAX_RETRIES} retries, status {response.status_code} for {url}")
 
@@ -122,7 +129,6 @@ def fetch_with_retry(url):
         wait_seconds = calculate_backoff_seconds(attempt, retry_after_header)
         time.sleep(wait_seconds)
         attempt += 1
-
 
 def fetch_and_cache(url, cache_path):
     if os.path.exists(cache_path):
