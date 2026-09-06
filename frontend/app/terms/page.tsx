@@ -21,6 +21,14 @@ const TermsPage = () => {
           time of the request, and its accuracy depends entirely on that
           source.
         </p>
+
+        <p>
+          This service runs on free hosting with no persistent storage.
+          Cached pages and past results are cleared whenever the service
+          restarts, which happens automatically after periods of
+          inactivity. The first request after an idle period may also take
+          up to a minute to respond while the service starts back up.
+        </p>
       </div>
     </main>
   );
