@@ -1,3 +1,4 @@
+import os
 import json
 import time
 from dataclasses import dataclass
@@ -6,6 +7,8 @@ from urllib.parse import urljoin
 from datetime import datetime, timezone
 from pydantic import BaseModel, ValidationError
 from .polite_fetch import fetch_and_cache
+
+os.makedirs("output", exist_ok=True)
 
 WRITE_MODE = "w"
 

@@ -7,6 +7,8 @@ import requests
 from urllib.parse import urlparse, urlunparse
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 
+os.makedirs("cache", exist_ok=True)
+
 USER_AGENT = "StanleyCrawler"
 READ = "r"
 WRITE = "w"
