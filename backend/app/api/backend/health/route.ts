@@ -8,7 +8,9 @@ export const GET = async () => {
   let scraperServiceStatus: "ok" | "down" = "down";
 
   try {
-    const response = await fetch(`${scraperServiceUrl}/health`);
+    const response = await fetch(`${scraperServiceUrl}/health`, {
+      signal: AbortSignal.timeout(5000),
+    });
     scraperServiceStatus = response.ok ? "ok" : "down";
   } catch {
     scraperServiceStatus = "down";
