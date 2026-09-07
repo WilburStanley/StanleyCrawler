@@ -6,7 +6,7 @@ const TermsPage = () => {
 
         <p>
           StanleyCrawler is a personal portfolio and internship project. It&apos;s
-          provided as-is, with no uptime or accuracy guarantees.
+          provided as-is, with no accuracy guarantees.
         </p>
 
         <p>
