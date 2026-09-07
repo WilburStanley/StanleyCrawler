@@ -2,6 +2,10 @@
 
 ## About
 
+StanleyCrawler-Screenshot
+
+![Dashboard screenshot](./frontend/public/StanleyCrawler-Screenshot.png)
+
 Built as part of the FlyRank AI Backend AI Engineering Internship, Assignment A9, "The polite scraper." Started as a graded assignment, extended into a personal portfolio project with a general purpose scraping engine.
 
 ## Context
