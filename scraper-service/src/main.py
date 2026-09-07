@@ -35,6 +35,7 @@ def verify_internal_request(x_internal_key: str = Header(default="")):
         raise HTTPException(status_code=403, detail="Forbidden")
 
 @app.get("/health")
+@app.head("/health")
 def health_check():
     return {"status": "ok"}
 
