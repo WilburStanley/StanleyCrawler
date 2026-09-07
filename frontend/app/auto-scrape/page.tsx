@@ -156,7 +156,6 @@ const AutoScrapePage = () => {
           </div>
         )}
       </div>
-
       <Toast message={toastMessage} onClear={() => setToastMessage(null)} />
     </main>
   );
