@@ -42,13 +42,13 @@ const JsonViewer = ({
       <div className="flex gap-2">
         <button
           onClick={copyToClipboard}
-          className="px-3 py-1.5 text-sm border border-border rounded-sm text-text hover:bg-surface"
+          className="cursor-pointer px-3 py-1.5 text-sm border border-border rounded-sm text-text hover:bg-surface"
         >
           Copy JSON
         </button>
         <button
           onClick={downloadJson}
-          className="px-3 py-1.5 text-sm border border-border rounded-sm text-text hover:bg-surface"
+          className="cursor-pointer px-3 py-1.5 text-sm border border-border rounded-sm text-text hover:bg-surface"
         >
           Download JSON
         </button>
